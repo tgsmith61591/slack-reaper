@@ -1,0 +1,47 @@
+version: 2.1
+
+# ################################
+#
+# CircleCI Job Filters
+#
+# ################################
+test-filters: &test-filters
+    tags:
+        only: /.*/
+    branches:
+        only: /.*/
+
+deploy-filters: &deploy-filters
+    tags:
+        only: /.*/
+    branches:
+        ignore: /.*/
+
+
+jobs:
+    slack-reaper:
+      working_directory: ~/slack-reaper
+      docker:
+        - image: python:3.7
+      steps:
+        - run:
+            name: Setup
+            command: |
+              pip install -r requirements.txt
+        - run:
+            name: Reap messages
+            command: |
+              python reaper.py --n-retain 5000 --channels general
+
+workflows:
+  version: 2
+  reaper:
+    triggers:
+      - schedule:
+          cron: "0 18 * * *"
+          filters:
+            branches:
+              only:
+                - master
+    jobs:
+        - slack-reaper
