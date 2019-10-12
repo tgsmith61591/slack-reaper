@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+"""Clean up old messages from slack channels"""
+
 import os
 import sys
 import time
