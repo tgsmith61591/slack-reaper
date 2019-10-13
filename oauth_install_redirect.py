@@ -13,6 +13,10 @@ this script.
 3. From this page, click on the 'Add To Slack' button and watch the browser to
    grab the token it returns:
    https://api.slack.com/apps/<APP_ID>/distribute?
+
+You'll need two ENV vars:
+- CHANNEL_REAPER_SLACK_APP_ID
+- CHANNEL_REAPER_SLACK_APP_SECRET
 """
 
 import os
@@ -43,6 +47,7 @@ redirect_uri = 'http://localhost/authenticate'
 app = flask.Flask(__name__)
 
 
+# I wrote this in a hotel and wanted to make sure I was the one health checking
 def _ip(request):
     return request.environ.get('HTTP_X_FORWARDED_FOR',
                                request.environ.get('HTTP_X_REAL_IP',

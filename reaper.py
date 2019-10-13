@@ -37,7 +37,7 @@ def fetch_and_clean(channel, n_retain, wait_for=600):
     client.chat_postMessage(
         channel=channel_id,
         text=f"<!channel> :alert: I'm bouta clean this channel up in "
-             f"{wait_for // 60} mins. Better star the messages you "
+             f"{wait_for // 60} mins. Better :star: the messages you "
              f"wanna keep :alert:",
         as_user=False)
     time.sleep(wait_for)
