@@ -24,6 +24,7 @@ jobs:
       docker:
         - image: python:3.7
       steps:
+        - checkout
         - run:
             name: Setup
             command: |
@@ -38,7 +39,7 @@ workflows:
   reaper:
     triggers:
       - schedule:
-          cron: "0 18 * * *"
+          cron: "15 12 * * *"
           filters:
             branches:
               only:
