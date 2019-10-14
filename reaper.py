@@ -8,6 +8,7 @@ import time
 import tqdm
 import logging
 import argparse
+from datetime import timedelta, datetime
 
 import slack
 from slack.errors import SlackApiError
@@ -28,26 +29,70 @@ token = os.environ['CHANNEL_REAPER_SLACK_APP_TOKEN']
 client = slack.WebClient(token=token)
 
 
+def _find_specific_recent_message(channel_id, ts, count=100):
+    batch = client.channels_history(channel=channel_id,
+                                    count=count)['messages']
+    for b in batch:
+        if b['ts'] == ts:
+            return b
+    return None
+
+
+def _get_username(user_id):
+    members = client.users_list().data
+    for mem in members['members']:
+        if mem['id'] == user_id:
+            return mem['name']
+    return user_id
+
+
 def fetch_and_clean(channel, n_retain, wait_for=600):
     """Fetch and clean-up all messages from a channel"""
     channel_id = channel['id']
     channel_name = channel['name']
 
-    stop_reaction = ':pepe-reeeeeeeee:'
-    # , or react to this message with {stop_reaction} to "
-    #              f"cancel reaping
+    stop_reaction = 'pepe-reeeeeeeee'
 
     # warn the world
-    client.chat_postMessage(
+    warning_response = client.chat_postMessage(
         channel=channel_id,
         text=f"<!channel> :alert: I'm bouta clean this channel up in "
              f"{wait_for // 60} mins. Better :star: the messages you "
-             f"wanna keep :alert:",
+             f"wanna keep, or react to this message with :{stop_reaction}: to "
+             f"cancel reaping :alert:",
         as_user=False)
 
     # keeps circle from timing out:
-    for _ in tqdm.tqdm(range(wait_for), unit='second'):
-        time.sleep(1)
+    await_timeout = timedelta(milliseconds=wait_for * 1000)
+    while True:
+
+        # only poll the slack API every 30 seconds or so to avoid hitting a
+        # API limit
+        start = datetime.now()
+        time.sleep(30)
+        logger.debug(f"Polling Slack for cancel reaction...")
+
+        msg = _find_specific_recent_message(
+            channel_id, ts=warning_response.data['ts'])
+
+        if msg is not None and msg.get('reactions', None):
+            for reaction in msg['reactions']:
+                if reaction['name'] == stop_reaction:
+                    msg = f"Reaping for *#{channel_name}* cancelled by " \
+                          f"*{_get_username(reaction['users'][0])}*"
+                    logger.info(msg)
+                    client.chat_postMessage(
+                        channel=channel_id,
+                        text=f"<!channel> :pepe-angry: {msg} :pepe-angry:",
+                        as_user=False)
+
+                    return 0
+
+        end = datetime.now()
+        await_timeout += timedelta(
+            milliseconds=int((end - start).total_seconds() * 1000))
+        if await_timeout.total_seconds() > wait_for:
+            break
 
     client.chat_postMessage(
         channel=channel_id,
