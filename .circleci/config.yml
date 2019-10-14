@@ -32,14 +32,15 @@ jobs:
         - run:
             name: Reap messages
             command: |
-              python reaper.py --n-retain 5000 --channels general
+              python reaper.py --n-retain 5000 --wait-for 600 --channels general
 
 workflows:
   version: 2
   reaper:
     triggers:
       - schedule:
-          cron: "15 12 * * *"
+          # 17:00 on Tuesdays (~noon CST)
+          cron: "0 17 * * 2"
           filters:
             branches:
               only:
