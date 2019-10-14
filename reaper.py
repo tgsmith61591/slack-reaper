@@ -33,6 +33,10 @@ def fetch_and_clean(channel, n_retain, wait_for=600):
     channel_id = channel['id']
     channel_name = channel['name']
 
+    stop_reaction = ':pepe-reeeeeeeee:'
+    # , or react to this message with {stop_reaction} to "
+    #              f"cancel reaping
+
     # warn the world
     client.chat_postMessage(
         channel=channel_id,
@@ -40,7 +44,10 @@ def fetch_and_clean(channel, n_retain, wait_for=600):
              f"{wait_for // 60} mins. Better :star: the messages you "
              f"wanna keep :alert:",
         as_user=False)
-    time.sleep(wait_for)
+
+    # keeps circle from timing out:
+    for _ in tqdm.tqdm(range(wait_for), unit='second'):
+        time.sleep(1)
 
     client.chat_postMessage(
         channel=channel_id,
