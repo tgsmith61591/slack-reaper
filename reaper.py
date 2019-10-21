@@ -28,9 +28,6 @@ formatter = logging.Formatter(
 handler.setFormatter(formatter)
 logger.addHandler(handler)
 
-token = os.environ['CHANNEL_REAPER_SLACK_APP_TOKEN']
-client = slack.WebClient(token=token)
-
 
 def _find_specific_recent_message(channel_id, ts, count=100):
     batch = client.channels_history(channel=channel_id,
@@ -391,7 +388,21 @@ if __name__ == "__main__":
                         help="The number of seconds to wait in each channel "
                              "before starting the delete operation.")
 
+    parser.add_argument('--keyname', type=str, default=None,
+                        help="The keyname for the slack token environment "
+                             "variable name. E.g., "
+                             "CHANNEL_REAPER_SLACK_APP_TOKEN. This is "
+                             "necessary so that multiple workspaces can use "
+                             "the reaper.")
+
     args = parser.parse_args()
+    if not args.keyname:
+        raise ValueError("Need 'keyname' to connect to slack API")
+
+    token = os.environ[args.keyname]
+    client = slack.WebClient(token=token)
+    logger.info("Successfully connected to slack client")
+
     channels = args.channels
     n_retain = int(args.n_retain)
     wait_for = int(args.wait_for)

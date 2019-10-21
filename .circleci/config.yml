@@ -1,38 +1,52 @@
 version: 2.1
 
-# ################################
+# ############################################
 #
-# CircleCI Job Filters
+# Set Circle CI Reusable Commands
 #
-# ################################
-test-filters: &test-filters
-    tags:
-        only: /.*/
-    branches:
-        only: /.*/
-
-deploy-filters: &deploy-filters
-    tags:
-        only: /.*/
-    branches:
-        ignore: /.*/
-
+# For more information, see the documentation:
+# https://circleci.com/docs/2.0/reusing-config
+#
+# ############################################
+commands:
+  clean-up-channels:
+    description: "Reusable non-model unit test commands"
+    parameters:
+      n_retain:
+        type: integer
+      channels:
+        type: string
+      keyname:
+        type: string
+    steps:
+      - setup_remote_docker
+      - checkout
+      - run:
+          name: Setup
+          command: |
+            pip install -r requirements.txt
+      - run:
+          name: Reap messages
+          command: |
+            python reaper.py \
+              --n-retain << parameters.n_retain >> \
+              --wait-for 600 \
+              --channels << parameters.channels >> \
+              --keyname << parameters.keyname >>
 
 jobs:
-    slack-reaper:
-      working_directory: ~/slack-reaper
-      docker:
-        - image: python:3.7
-      steps:
-        - checkout
-        - run:
-            name: Setup
-            command: |
-              pip install -r requirements.txt
-        - run:
-            name: Reap messages
-            command: |
-              python reaper.py --n-retain 5000 --wait-for 600 --channels general
+  # personal workspace
+  personal-slack-reaper:
+    working_directory: ~/slack-reaper
+    docker:
+      - image: python:3.7
+    steps:
+      - clean-up-channels:
+          n_retain: 5000
+          channels: general
+          keyname: PERSONAL_REAPER_SLACK_APP_TOKEN
+
+  # TODO: open source workspace
 
 workflows:
   version: 2
@@ -46,4 +60,4 @@ workflows:
               only:
                 - master
     jobs:
-        - slack-reaper
+        - personal-slack-reaper
