@@ -43,7 +43,7 @@ jobs:
     steps:
       - clean-up-channels:
           n_retain: 5000
-          channels: general
+          channels: general,pictures-of-penny
           keyname: PERSONAL_REAPER_SLACK_APP_TOKEN
 
   # TODO: open source workspace
