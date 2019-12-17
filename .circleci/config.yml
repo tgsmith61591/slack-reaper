@@ -17,7 +17,7 @@ commands:
       channels:
         type: string
       delete_media:
-        type: string
+        type: integer
       keyname:
         type: string
     steps:
