@@ -298,6 +298,7 @@ def fetch_and_clean(channel, retain, wait_for=600, skip_wait=False,
         text=msg,
         as_user=False)
 
+    # TODO: would be cool to react with something to trigger it now
     if not skip_wait:
         # keeps circle from timing out:
         await_timeout = timedelta(milliseconds=0)
@@ -372,9 +373,11 @@ if __name__ == "__main__":
                         help="A comma-separated list of channels that should "
                              "be reaped")
 
-    # TODO: use this
-    parser.add_argument('--keep-images', action="store_true",
-                        help="Whether to keep images")
+    # This would be a store_true action to be most elegant, but since we need
+    # to parameterize the job in Circle it's easier to just pass a value
+    parser.add_argument('--delete-media', type=int, default=0,
+                        help="Whether to delete images and other media. >0 "
+                             "is true.")
 
     parser.add_argument('--n-retain', type=int, default=5000,
                         help="The last N messages that will remain in each "
@@ -414,6 +417,7 @@ if __name__ == "__main__":
     wait_for = int(args.wait_for)
     skip_wait = args.no_wait
     log_only = args.log_messages_only
+    delete_media = bool(int(args.delete_media))
 
     if not channels:
         raise ValueError("No channels provided!")
@@ -439,6 +443,7 @@ if __name__ == "__main__":
             ndeleted += fetch_and_clean(ch,
                                         retain=n_retain,
                                         wait_for=wait_for,
-                                        skip_wait=skip_wait)
+                                        skip_wait=skip_wait,
+                                        skip_files=not delete_media)
 
     logger.info(f"All done! Deleted {ndeleted} messages")

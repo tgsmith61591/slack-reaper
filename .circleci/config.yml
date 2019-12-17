@@ -16,6 +16,8 @@ commands:
         type: integer
       channels:
         type: string
+      delete_media:
+        type: string
       keyname:
         type: string
     steps:
@@ -32,6 +34,7 @@ commands:
               --n-retain << parameters.n_retain >> \
               --wait-for 600 \
               --channels << parameters.channels >> \
+              --delete-media << parameters.delete_media >> \
               --keyname << parameters.keyname >>
 
 jobs:
@@ -44,6 +47,7 @@ jobs:
       - clean-up-channels:
           n_retain: 3000
           channels: general,pictures-of-penny
+          delete_media: 0
           keyname: PERSONAL_REAPER_SLACK_APP_TOKEN
 
   # open source workspace
@@ -55,6 +59,7 @@ jobs:
       - clean-up-channels:
           n_retain: 2500
           channels: general,pmdarima,random,skoot
+          delete_media: 1
           keyname: ALKALINE_REAPER_SLACK_APP_TOKEN
 
 workflows:
