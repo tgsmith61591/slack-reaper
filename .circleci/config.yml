@@ -46,14 +46,25 @@ jobs:
           channels: general,pictures-of-penny
           keyname: PERSONAL_REAPER_SLACK_APP_TOKEN
 
-  # TODO: open source workspace
+  # open source workspace
+  alkaline-slack-reaper:
+    working_directory: ~/slack-reaper
+    docker:
+      - image: python:3.7
+    steps:
+      - clean-up-channels:
+          n_retain: 2500
+          channels: general,pmdarima,random,skoot
+          keyname: ALKALINE_REAPER_SLACK_APP_TOKEN
 
 workflows:
   version: 2
-  reaper:
+
+  # Reaper for personal workspace
+  personal-reaper:
     triggers:
       - schedule:
-          # 17:00 on Tuesdays (~noon CST)
+          # 17:00 on Tuesdays (11 or 12 CST, depending on DST)
           cron: "0 17 * * 2"
           filters:
             branches:
@@ -61,3 +72,16 @@ workflows:
                 - master
     jobs:
         - personal-slack-reaper
+
+  # Reaper for alkaline-ml workspace
+  alkaline-reaper:
+    triggers:
+      - schedule:
+          # 15:00 on Mon, Weds & Fri (9 or 11 CST, depending on DST)
+          cron: "0 15 * * 1,3,5"
+          filters:
+            branches:
+              only:
+                - master
+    jobs:
+      - alkaline-slack-reaper

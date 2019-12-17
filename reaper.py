@@ -30,8 +30,8 @@ logger.addHandler(handler)
 
 
 def _find_specific_recent_message(channel_id, ts, count=100):
-    batch = client.channels_history(channel=channel_id,
-                                    count=count)['messages']
+    batch = client.conversations_history(channel=channel_id,
+                                         count=count)['messages']
     for b in batch:
         if b['ts'] == ts:
             return b
@@ -83,6 +83,12 @@ def handle_rate_limit(n_retries=3, sleep_time=120):
                         logger.debug(f"(func={func.__name__}) Message not "
                                      f"found; skipping")
                         return False
+
+                    # Hack, but to make sure we're in the reaction call
+                    elif 'reaction' in func.__name__ and \
+                            'already_reacted' in str(e):
+                        logger.debug(f"(func={func.__name__}) Already reacted")
+                        return True
 
                     # probably a rate limit, otherwise. increment and sleep or
                     # raise
@@ -197,9 +203,9 @@ def get_message_reactions(msg):
 
 def fetch_batch(channel_id, latest):
     try:
-        batch = client.channels_history(channel=channel_id,
-                                        count=1000,
-                                        latest=latest)['messages']
+        batch = client.conversations_history(channel=channel_id,
+                                             count=1000,
+                                             latest=latest)['messages']
     except SlackApiError as err:
         # ONLY break if we fed a bad invalid latest. Raise for all others.
         if 'invalid_ts_latest' in str(err):
@@ -419,7 +425,8 @@ if __name__ == "__main__":
     logger.info(f"Number of messages to retain per channel: {n_retain}")
 
     channels_to_clean = [
-        c for c in client.channels_list()['channels']
+        c for c in client.conversations_list(
+            types='public_channel,private_channel')['channels']
         if c['name'] in channels]
 
     # fetch the channels' messages
