@@ -42,7 +42,7 @@ jobs:
       - image: python:3.7
     steps:
       - clean-up-channels:
-          n_retain: 5000
+          n_retain: 3000
           channels: general,pictures-of-penny
           keyname: PERSONAL_REAPER_SLACK_APP_TOKEN
 
