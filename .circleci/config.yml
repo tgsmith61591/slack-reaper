@@ -57,8 +57,8 @@ jobs:
       - image: python:3.7
     steps:
       - clean-up-channels:
-          n_retain: 2500
-          channels: general,pmdarima,random,skoot
+          n_retain: 1000
+          channels: circlejerk,general,pmdarima,random,skoot
           delete_media: 1
           keyname: ALKALINE_REAPER_SLACK_APP_TOKEN
 
