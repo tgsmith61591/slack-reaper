@@ -46,7 +46,7 @@ jobs:
     steps:
       - clean-up-channels:
           n_retain: 3000
-          channels: general,pictures-of-penny
+          channels: PERSONAL_REAPER_CHANNELS
           delete_media: 0
           keyname: PERSONAL_REAPER_SLACK_APP_TOKEN
 
@@ -58,7 +58,7 @@ jobs:
     steps:
       - clean-up-channels:
           n_retain: 1000
-          channels: circlejerk,general,pmdarima,random,skoot
+          channels: ALKALINE_REAPER_CHANNELS
           delete_media: 1
           keyname: ALKALINE_REAPER_SLACK_APP_TOKEN
 
