@@ -82,8 +82,8 @@ workflows:
   alkaline-reaper:
     triggers:
       - schedule:
-          # 15:00 on Mon, Weds & Fri (9 or 11 CST, depending on DST)
-          cron: "0 15 * * 1,3,5"
+          # 15:00 on Mon (9 or 11 CST, depending on DST)
+          cron: "0 15 * * 1"
           filters:
             branches:
               only:
