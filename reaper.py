@@ -298,6 +298,28 @@ def fetch_and_clean(channel, retain, wait_for=600, skip_wait=False,
         text=msg,
         as_user=False)
 
+    break_message = None
+    do_reap = True
+
+    # TODO: this is error-prone
+    def _cleanup():
+        # Finally, delete the two reaper messages.
+        time.sleep(60)
+        deleted = 0
+        try:
+            _delete_message(channel_id, warning_response.data['ts'])
+            deleted += 1
+        except:
+            pass
+
+        try:
+            _delete_message(channel_id, break_message.data['ts'])
+            deleted += 1
+        except:
+            pass
+
+        return deleted
+
     # TODO: would be cool to react with something to trigger it now
     if not skip_wait:
         # keeps circle from timing out:
@@ -318,12 +340,13 @@ def fetch_and_clean(channel, retain, wait_for=600, skip_wait=False,
                 msg = f"Reaping for *#{channel_name}* cancelled by " \
                       f"*{_get_username(reactions[stop_reaction][0])}*"
                 logger.info(msg)
-                client.chat_postMessage(
+                break_message = client.chat_postMessage(
                     channel=channel_id,
                     text=f"<!channel> :pepe-angry: {msg} :pepe-angry:",
                     as_user=False)
 
-                return 0
+                do_reap = False
+                break
 
             end = datetime.now()
             await_timeout += timedelta(
@@ -333,12 +356,15 @@ def fetch_and_clean(channel, retain, wait_for=600, skip_wait=False,
                             f"which is greater than {wait_for}. Let's do this")
                 break
 
-        client.chat_postMessage(
+        break_message = client.chat_postMessage(
             channel=channel_id,
             text=f"<!channel> :leeroy-jenkins: Alright, times's up. Let's do "
                  f"this! Leerooooooyyyyyyy Jeeeennnnkinnnnssss! "
                  f":leeroy-jenkins:",
             as_user=False)
+
+    if not do_reap:
+        return _cleanup()
 
     messages = fetch_all_batches(channel,
                                  retain=retain,
@@ -362,6 +388,9 @@ def fetch_and_clean(channel, retain, wait_for=600, skip_wait=False,
         time.sleep(60)
         n_deleted += delete_batch(
             channel_id, i, messages[batch_slice], deleted_ids)
+
+    # Finally, clean up
+    n_deleted += _cleanup()
 
     return n_deleted
 
@@ -393,7 +422,7 @@ if __name__ == "__main__":
                         help="Whether to fetch and log messages with no "
                              "deletion operation")
 
-    parser.add_argument('--wait-for', type=int, default=600,
+    parser.add_argument('--wait-for', type=int, default=300,
                         help="The number of seconds to wait in each channel "
                              "before starting the delete operation.")
 
